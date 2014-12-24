@@ -521,6 +521,7 @@ VariantType type;
 class Audio
 {
 // Methods:
+bool HasMasterGain(const String&) const;
 bool Play();
 void SendEvent(const String&, VariantMap& = VariantMap ( ));
 void SetMode(int, int, bool, bool = true);
@@ -3002,6 +3003,7 @@ void ApplyAttributes();
 void BringToFront();
 UIElement CreateChild(const String&, const String& = String ( ), uint = M_MAX_UNSIGNED);
 void DefineShape(CursorShape, Texture, const IntRect&, const IntVector2&);
+void DefineShape(const String&, Texture, const IntRect&, const IntVector2&);
 void DisableLayoutUpdate();
 IntVector2 ElementToScreen(const IntVector2&);
 void EnableLayoutUpdate();
@@ -3060,6 +3062,8 @@ void SetMaxSize(int, int);
 void SetMinSize(int, int);
 void SetParent(UIElement, uint = M_MAX_UNSIGNED);
 void SetPosition(int, int);
+void SetShape(CursorShape);
+void SetShape(const String&);
 void SetSize(int, int);
 bool SetStyle(const String&, XMLFile = null);
 bool SetStyle(const XMLElement&);
@@ -3157,7 +3161,7 @@ UIElement root;
 /* readonly */
 IntVector2 screenPosition;
 bool selected;
-CursorShape shape;
+String shape;
 IntVector2 size;
 bool sortChildren;
 String style;
@@ -5968,7 +5972,7 @@ Array<Node> GetChildrenWithScript(const String&, bool = false) const;
 Component GetComponent(const String&) const;
 Array<Component> GetComponents() const;
 Array<Component> GetComponents(const String&, bool = false) const;
-Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0);
+Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0, bool = false);
 ScriptObject GetScriptObject() const;
 ScriptObject GetScriptObject(const String&) const;
 bool HasComponent(const String&) const;
@@ -7462,7 +7466,7 @@ Component GetComponent(uint);
 Array<Component> GetComponents() const;
 Array<Component> GetComponents(const String&, bool = false) const;
 Node GetNode(uint);
-Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0);
+Component GetOrCreateComponent(const String&, CreateMode = REPLICATED, uint = 0, bool = false);
 ScriptObject GetScriptObject() const;
 ScriptObject GetScriptObject(const String&) const;
 bool HasComponent(const String&) const;
@@ -8744,7 +8748,7 @@ bool playing;
 int refs;
 /* readonly */
 Sound sound;
-SoundType soundType;
+String soundType;
 bool temporary;
 /* readonly */
 float timePosition;
@@ -8827,7 +8831,7 @@ int refs;
 float rolloffFactor;
 /* readonly */
 Sound sound;
-SoundType soundType;
+String soundType;
 bool temporary;
 /* readonly */
 float timePosition;
@@ -10392,7 +10396,6 @@ Array<Variant> attributes;
 StringHash baseType;
 /* readonly */
 String category;
-/* writeonly */
 int drawOrder;
 bool enabled;
 /* readonly */
@@ -10414,8 +10417,6 @@ uint numObjects;
 ObjectAnimation objectAnimation;
 /* readonly */
 int refs;
-/* readonly */
-int rrawOrder;
 bool temporary;
 /* readonly */
 StringHash type;
@@ -10991,6 +10992,7 @@ VectorBuffer GetBuffer() const;
 float GetFloat() const;
 int GetInt() const;
 RefCounted GetPtr() const;
+ScriptObject GetScriptObject() const;
 StringHash GetStringHash() const;
 uint GetUInt() const;
 Array<Variant> GetVariantVector() const;
@@ -11949,13 +11951,17 @@ CULL_CW,
 enum CursorShape
 {
 CS_NORMAL,
+CS_IBEAM,
+CS_CROSS,
 CS_RESIZEVERTICAL,
 CS_RESIZEDIAGONAL_TOPRIGHT,
 CS_RESIZEHORIZONTAL,
 CS_RESIZEDIAGONAL_TOPLEFT,
+CS_RESIZE_ALL,
 CS_ACCEPTDROP,
 CS_REJECTDROP,
 CS_BUSY,
+CS_BUSY_ARROW,
 };
 
 enum DumpMode
@@ -12167,15 +12173,6 @@ SHAPE_CONE,
 SHAPE_TRIANGLEMESH,
 SHAPE_CONVEXHULL,
 SHAPE_TERRAIN,
-};
-
-enum SoundType
-{
-SOUND_EFFECT,
-SOUND_AMBIENT,
-SOUND_VOICE,
-SOUND_MUSIC,
-SOUND_MASTER,
 };
 
 enum TextEffect
@@ -12486,8 +12483,8 @@ uint DEFAULT_LIGHTMASK;
 uint DEFAULT_VIEWMASK;
 uint DRAWABLE_ANY;
 uint DRAWABLE_GEOMETRY;
+uint DRAWABLE_GEOMETRY2D;
 uint DRAWABLE_LIGHT;
-uint DRAWABLE_PROXYGEOMETRY;
 uint DRAWABLE_ZONE;
 uint FIRST_LOCAL_ID;
 uint FIRST_REPLICATED_ID;
@@ -12895,6 +12892,11 @@ int SHADOWQUALITY_HIGH_16BIT;
 int SHADOWQUALITY_HIGH_24BIT;
 int SHADOWQUALITY_LOW_16BIT;
 int SHADOWQUALITY_LOW_24BIT;
+String SOUND_AMBIENT;
+String SOUND_EFFECT;
+String SOUND_MASTER;
+String SOUND_MUSIC;
+String SOUND_VOICE;
 Color TRANSPARENT;
 uint VO_DISABLE_OCCLUSION;
 uint VO_DISABLE_SHADOWS;
