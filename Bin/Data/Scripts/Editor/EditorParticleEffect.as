@@ -7,6 +7,7 @@ bool inParticleEffectRefresh = false;
 View3D@ particleEffectPreview;
 Scene@ particlePreviewScene;
 Node@ particleEffectPreviewNode;
+StaticModel@ axisGizmo;
 Node@ particlePreviewCameraNode;
 Node@ particlePreviewLightNode;
 Light@ particlePreviewLight;
@@ -117,6 +118,11 @@ void CreateParticleEffectEditor()
     SubscribeToEvent(particleEffectWindow.GetChild("Sorted", true), "Toggled", "EditParticleEffectSorted");
     SubscribeToEvent(particleEffectWindow.GetChild("Relative", true), "Toggled", "EditParticleEffectRelative");
 
+}
+
+void EditAxisVisibility(StringHash eventType, VariantMap& eventData){
+    CheckBox@ element = eventData["Element"].GetPtr();
+    axisGizmo.enabled = element.checked;
 }
 
 void EditParticleEffectColorFrameNew(StringHash eventType, VariantMap& eventData)
@@ -836,12 +842,12 @@ void InitParticleEffectPreview()
 
     particleEffectPreviewNode = particlePreviewScene.CreateChild("PreviewEmitter");
     particleEffectPreviewNode.rotation = Quaternion(0, 0, 0);
-    StaticModel@ gizmo = particleEffectPreviewNode.CreateComponent("StaticModel");
-    gizmo.model = cache.GetResource("Model", "Models/Editor/Axes.mdl");
-    gizmo.materials[0] = cache.GetResource("Material", "Materials/Editor/RedUnlit.xml");
-    gizmo.materials[1] = cache.GetResource("Material", "Materials/Editor/GreenUnlit.xml");
-    gizmo.materials[2] = cache.GetResource("Material", "Materials/Editor/BlueUnlit.xml");
-    gizmo.occludee = false;
+    axisGizmo = particleEffectPreviewNode.CreateComponent("StaticModel");
+    axisGizmo.model = cache.GetResource("Model", "Models/Editor/Axes.mdl");
+    axisGizmo.materials[0] = cache.GetResource("Material", "Materials/Editor/RedUnlit.xml");
+    axisGizmo.materials[1] = cache.GetResource("Material", "Materials/Editor/GreenUnlit.xml");
+    axisGizmo.materials[2] = cache.GetResource("Material", "Materials/Editor/BlueUnlit.xml");
+    axisGizmo.occludee = false;
 
     particleEffectEmitter = particleEffectPreviewNode.CreateComponent("ParticleEmitter");
     editParticleEffect = CreateNewParticleEffect();
@@ -852,6 +858,7 @@ void InitParticleEffectPreview()
     particleEffectPreview.SetView(particlePreviewScene, camera);
 
     SubscribeToEvent(particleEffectPreview, "DragMove", "RotateParticleEffectPreview");
+    SubscribeToEvent(particleEffectWindow.GetChild("ShowAxis", true), "Toggled", "EditAxisVisibility");
 }
 
 ParticleEffect@ CreateNewParticleEffect()
