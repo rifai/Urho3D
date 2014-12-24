@@ -498,9 +498,13 @@ bool ParticleEmitter::EmitNewParticle(const FrameInfo& frame)
     	float angle = dirParticle.Angle(Vector3::RIGHT);
 
     	bool up = dirParticle.DotProduct(Vector3::UP) > 0;
+
     	if (up){
     		angle *= -1;
     	}
+
+    	billboard.flipX = (angle > 0 && angle < 90) || (angle > -180 && angle < -90);
+
     	billboard.rotation_ = angle;
 
     }

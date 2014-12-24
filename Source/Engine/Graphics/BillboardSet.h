@@ -51,6 +51,11 @@ struct URHO3D_API Billboard
     bool enabled_;
     /// Sort distance.
     float sortDistance_;
+    /// Flip X uv
+	bool flipX;
+    /// Flip Y uv
+    bool flipY;
+
 };
 
 static const unsigned MAX_BILLBOARDS = 65536 / 4;

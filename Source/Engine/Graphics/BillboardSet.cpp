@@ -544,6 +544,20 @@ void BillboardSet::UpdateVertexBuffer(const FrameInfo& frame)
         dest[30] = -size.x_ * rotationMatrix[0][0] - size.y_ * rotationMatrix[0][1];
         dest[31] = -size.x_ * rotationMatrix[1][0] - size.y_ * rotationMatrix[1][1];
 
+        if (billboard.flipX)
+        {
+        	float tmp1 = dest[4];
+        	float tmp2 = dest[5];
+        	dest[4] = dest[28]; dest[5] = dest[29];
+        	dest[28] = tmp1; dest[29] = tmp2;
+
+        	tmp1 = dest[12];
+			tmp2 = dest[13];
+			dest[12] = dest[20]; dest[13] = dest[21];
+			dest[20] = tmp1; dest[21] = tmp2;
+
+        }
+
         dest += 32;
     }
 
