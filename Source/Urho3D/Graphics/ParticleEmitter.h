@@ -113,7 +113,7 @@ protected:
     virtual void OnSceneSet(Scene* scene);
 
     /// Create a new particle. Return true if there was room.
-    bool EmitNewParticle();
+    bool EmitNewParticle(const FrameInfo &frame);
     /// Return a free particle index.
     unsigned GetFreeParticle() const;
 

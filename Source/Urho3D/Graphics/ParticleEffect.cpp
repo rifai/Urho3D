@@ -141,6 +141,7 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
     sizeMul_ = 1.0f;
     colorFrames_.Clear();
     textureFrames_.Clear();
+    rotateByVelocity_ = false;
 
     if (rootElem.HasChild("material"))
     {
@@ -164,6 +165,9 @@ bool ParticleEffect::BeginLoad(Deserializer& source)
 
     if (rootElem.HasChild("sorted"))
         sorted_ = rootElem.GetChild("sorted").GetBool("enable");
+
+    if (rootElem.HasChild("rotatebyvelocity"))
+        rotateByVelocity_ = rootElem.GetChild("rotatebyvelocity").GetBool("enable");
 
     if (rootElem.HasChild("animlodbias"))
         SetAnimationLodBias(rootElem.GetChild("animlodbias").GetFloat("value"));
@@ -330,6 +334,7 @@ bool ParticleEffect::Load(const XMLElement& source)
     sizeMul_ = 1.0f;
     colorFrames_.Clear();
     textureFrames_.Clear();
+    rotateByVelocity_ = false;
 
     if (source.IsNull())
     {
@@ -356,6 +361,9 @@ bool ParticleEffect::Load(const XMLElement& source)
 
     if (source.HasChild("sorted"))
         sorted_ = source.GetChild("sorted").GetBool("enable");
+
+    if (source.HasChild("rotatebyvelocity"))
+        rotateByVelocity_ = source.GetChild("rotatebyvelocity").GetBool("enable");
 
     if (source.HasChild("animlodbias"))
         SetAnimationLodBias(source.GetChild("animlodbias").GetFloat("value"));
@@ -505,6 +513,9 @@ bool ParticleEffect::Save(XMLElement& dest) const
 
     childElem = dest.CreateChild("scaled");
     childElem.SetBool("enable", scaled_);
+
+    childElem = dest.CreateChild("rotatebyvelocity");
+    childElem.SetBool("enable", rotateByVelocity_);
 
     childElem = dest.CreateChild("sorted");
     childElem.SetBool("enable", sorted_);
@@ -721,6 +732,11 @@ void ParticleEffect::SetMinRotationSpeed(float speed)
 void ParticleEffect::SetMaxRotationSpeed(float speed)
 {
     rotationSpeedMax_ = speed;
+}
+
+void ParticleEffect::SetRotateByVelocity(bool enable)
+{
+    rotateByVelocity_ = enable;
 }
 
 

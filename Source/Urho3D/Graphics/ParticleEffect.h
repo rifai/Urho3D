@@ -176,6 +176,8 @@ public:
     void SetMinRotationSpeed(float speed);
     /// Set particle maximum rotation speed.
     void SetMaxRotationSpeed(float speed);
+    /// Set rotation by velocity
+    void SetRotateByVelocity(bool enable);
     /// Set particle size additive modifier.
     void SetSizeAdd(float sizeAdd);
     /// Set particle size multiplicative modifier.
@@ -228,6 +230,9 @@ public:
 
     /// Return whether billboards are sorted.
     bool IsSorted() const { return sorted_; }
+
+    /// Return whether billboard rotate toward its velocity
+    bool IsRotateByVelocity() const { return rotateByVelocity_; }
 
     /// Return animation Lod bias.
     float GetAnimationLodBias() const { return animationLodBias_; }
@@ -349,6 +354,8 @@ private:
     bool scaled_;
     /// Billboards sorted flag.
     bool sorted_;
+    /// Rotate particle toward its velocity
+    bool rotateByVelocity_;
     /// Animation LOD bias.
     float animationLodBias_;
     /// Emitter shape.

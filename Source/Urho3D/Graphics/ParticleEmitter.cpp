@@ -24,6 +24,7 @@
 
 #include "../Core/Context.h"
 #include "../Core/Profiler.h"
+#include "../Graphics/Camera.h"
 #include "../Graphics/ParticleEffect.h"
 #include "../Graphics/ParticleEmitter.h"
 #include "../Resource/ResourceCache.h"
@@ -63,7 +64,7 @@ void ParticleEmitter::RegisterObject(Context* context)
 
     URHO3D_ACCESSOR_ATTRIBUTE("Is Enabled", IsEnabled, SetEnabled, bool, true, AM_DEFAULT);
     URHO3D_MIXED_ACCESSOR_ATTRIBUTE("Effect", GetEffectAttr, SetEffectAttr, ResourceRef, ResourceRef(ParticleEffect::GetTypeStatic()),
-        AM_DEFAULT);
+                                    AM_DEFAULT);
     URHO3D_ENUM_ATTRIBUTE("Face Camera Mode", faceCameraMode_, faceCameraModeNames, FC_ROTATE_XYZ, AM_DEFAULT);
     URHO3D_ACCESSOR_ATTRIBUTE("Can Be Occluded", IsOccludee, SetOccludee, bool, true, AM_DEFAULT);
     URHO3D_ATTRIBUTE("Cast Shadows", bool, castShadows_, false, AM_DEFAULT);
@@ -75,9 +76,9 @@ void ParticleEmitter::RegisterObject(Context* context)
     URHO3D_ATTRIBUTE("Emission Timer", float, emissionTimer_, 0.0f, AM_FILE | AM_NOEDIT);
     URHO3D_COPY_BASE_ATTRIBUTES(Drawable);
     URHO3D_MIXED_ACCESSOR_ATTRIBUTE("Particles", GetParticlesAttr, SetParticlesAttr, VariantVector, Variant::emptyVariantVector,
-        AM_FILE | AM_NOEDIT);
+                                    AM_FILE | AM_NOEDIT);
     URHO3D_MIXED_ACCESSOR_ATTRIBUTE("Billboards", GetParticleBillboardsAttr, SetBillboardsAttr, VariantVector, Variant::emptyVariantVector,
-        AM_FILE | AM_NOEDIT);
+                                    AM_FILE | AM_NOEDIT);
     URHO3D_ATTRIBUTE("Serialize Particles", bool, serializeParticles_, true, AM_FILE);
 }
 
@@ -151,7 +152,7 @@ void ParticleEmitter::Update(const FrameInfo& frame)
         while (emissionTimer_ > 0.0f && counter)
         {
             emissionTimer_ -= Lerp(intervalMin, intervalMax, Random(1.0f));
-            if (EmitNewParticle())
+            if (EmitNewParticle(frame))
             {
                 --counter;
                 needCommit = true;
@@ -427,10 +428,10 @@ void ParticleEmitter::OnSceneSet(Scene* scene)
     if (scene && IsEnabledEffective())
         SubscribeToEvent(scene, E_SCENEPOSTUPDATE, URHO3D_HANDLER(ParticleEmitter, HandleScenePostUpdate));
     else if (!scene)
-         UnsubscribeFromEvent(E_SCENEPOSTUPDATE);
+        UnsubscribeFromEvent(E_SCENEPOSTUPDATE);
 }
 
-bool ParticleEmitter::EmitNewParticle()
+bool ParticleEmitter::EmitNewParticle(const FrameInfo &frame)
 {
     unsigned index = GetFreeParticle();
     if (index == M_MAX_UNSIGNED)
@@ -446,26 +447,26 @@ bool ParticleEmitter::EmitNewParticle()
     switch (effect_->GetEmitterType())
     {
     case EMITTER_SPHERE:
-        {
-            Vector3 dir(
-                Random(2.0f) - 1.0f,
-                Random(2.0f) - 1.0f,
-                Random(2.0f) - 1.0f
-            );
-            dir.Normalize();
-            startPos = effect_->GetEmitterSize() * dir * 0.5f;
-        }
+    {
+        Vector3 dir(
+                    Random(2.0f) - 1.0f,
+                    Random(2.0f) - 1.0f,
+                    Random(2.0f) - 1.0f
+                    );
+        dir.Normalize();
+        startPos = effect_->GetEmitterSize() * dir * 0.5f;
+    }
         break;
 
     case EMITTER_BOX:
-        {
-            const Vector3& emitterSize = effect_->GetEmitterSize();
-            startPos = Vector3(
-                Random(emitterSize.x_) - emitterSize.x_ * 0.5f,
-                Random(emitterSize.y_) - emitterSize.y_ * 0.5f,
-                Random(emitterSize.z_) - emitterSize.z_ * 0.5f
-            );
-        }
+    {
+        const Vector3& emitterSize = effect_->GetEmitterSize();
+        startPos = Vector3(
+                    Random(emitterSize.x_) - emitterSize.x_ * 0.5f,
+                    Random(emitterSize.y_) - emitterSize.y_ * 0.5f,
+                    Random(emitterSize.z_) - emitterSize.z_ * 0.5f
+                    );
+    }
         break;
     }
 
@@ -491,7 +492,32 @@ bool ParticleEmitter::EmitNewParticle()
     billboard.size_ = particles_[index].size_;
     const Vector<TextureFrame>& textureFrames_ = effect_->GetTextureFrames();
     billboard.uv_ = textureFrames_.Size() ? textureFrames_[0].uv_ : Rect::POSITIVE;
-    billboard.rotation_ = effect_->GetRandomRotation();
+
+    if (effect_->IsRotateByVelocity())
+    {
+        Matrix4 viwProj = frame.camera_->GetProjection() * frame.camera_->GetView();
+
+        Vector3 pos1 = viwProj * startPos;
+        Vector3 pos2 = viwProj * (startPos + startDir);
+
+        //get direction in projection space
+        Vector3 dirParticle = pos2 - pos1;
+        dirParticle.Normalize();
+
+        // vector::right is 0 degree
+        float angle = dirParticle.Angle(Vector3::RIGHT);
+
+        bool up = dirParticle.DotProduct(Vector3::UP) > 0;
+        if (up){
+            angle *= -1;
+        }
+
+        billboard.rotation_ = angle;
+    }
+    else
+    {
+        billboard.rotation_ = effect_->GetRandomRotation();
+    }
     const Vector<ColorFrame>& colorFrames_ = effect_->GetColorFrames();
     billboard.color_ = colorFrames_.Size() ? colorFrames_[0].color_ : Color();
     billboard.enabled_ = true;
